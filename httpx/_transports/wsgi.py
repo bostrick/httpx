@@ -112,7 +112,7 @@ class WSGITransport(BaseTransport):
         request.read()
         environ["wsgi.input"] = io.BytesIO(request.content)
         port = request.url.port or {"http": 80, "https": 443}[request.url.scheme]
-        environ["SERVER_PORT"] = str(port)
+        environ.setdefault("SERVER_PORT", str(port))
         for header_key, header_value in request.headers.raw:
             key = header_key.decode("ascii").upper().replace("-", "_")
             if key not in ("CONTENT_TYPE", "CONTENT_LENGTH"):
