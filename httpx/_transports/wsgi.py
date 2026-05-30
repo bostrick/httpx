@@ -88,15 +88,10 @@ class WSGITransport(BaseTransport):
         self.remote_addr = remote_addr
         self.wsgi_errors = wsgi_errors
 
-    def handle_request(self, request: Request) -> Response:
-        request.read()
-        wsgi_input = io.BytesIO(request.content)
-
-        port = request.url.port or {"http": 80, "https": 443}[request.url.scheme]
-        environ = {
+    def _get_base_environ(self, request):
+        return {
             "wsgi.version": (1, 0),
             "wsgi.url_scheme": request.url.scheme,
-            "wsgi.input": wsgi_input,
             "wsgi.errors": self.wsgi_errors or sys.stderr,
             "wsgi.multithread": True,
             "wsgi.multiprocess": False,
@@ -106,10 +101,16 @@ class WSGITransport(BaseTransport):
             "PATH_INFO": request.url.path,
             "QUERY_STRING": request.url.query.decode("ascii"),
             "SERVER_NAME": request.url.host,
-            "SERVER_PORT": str(port),
             "SERVER_PROTOCOL": "HTTP/1.1",
             "REMOTE_ADDR": self.remote_addr,
         }
+
+    def handle_request(self, request: Request) -> Response:
+        environ = self._get_base_environ(request)
+        request.read()
+        environ["wsgi.input"] = io.BytesIO(request.content)
+        port = request.url.port or {"http": 80, "https": 443}[request.url.scheme]
+        environ.setdefault("SERVER_PORT", str(port))
         for header_key, header_value in request.headers.raw:
             key = header_key.decode("ascii").upper().replace("-", "_")
             if key not in ("CONTENT_TYPE", "CONTENT_LENGTH"):

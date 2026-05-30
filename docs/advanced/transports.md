@@ -66,6 +66,19 @@ with httpx.Client(transport=transport, base_url="http://testserver") as client:
     assert r.text == "Hello World!"
 ```
 
+If a custom WSGI environ is required, a custom transport could be
+implemented, for example to support testing frameworks mocking upstream wsgi
+applications:
+
+```python
+class CustomWSGITransport(https.WSGITransport):
+
+    def _get_base_environ(self, request):
+        environ = super()._get_base_environ(request)
+        environ["custom-user"] = "some-custom-user"
+        return environ
+```
+
 ### Configuration
 
 For some more complex cases you might need to customize the WSGI transport. This allows you to:
