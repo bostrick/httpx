@@ -92,7 +92,6 @@ class WSGITransport(BaseTransport):
         return {
             "wsgi.version": (1, 0),
             "wsgi.url_scheme": request.url.scheme,
-            "wsgi.input": wsgi_input,
             "wsgi.errors": self.wsgi_errors or sys.stderr,
             "wsgi.multithread": True,
             "wsgi.multiprocess": False,
@@ -102,7 +101,6 @@ class WSGITransport(BaseTransport):
             "PATH_INFO": request.url.path,
             "QUERY_STRING": request.url.query.decode("ascii"),
             "SERVER_NAME": request.url.host,
-            "SERVER_PORT": str(port),
             "SERVER_PROTOCOL": "HTTP/1.1",
             "REMOTE_ADDR": self.remote_addr,
         }
